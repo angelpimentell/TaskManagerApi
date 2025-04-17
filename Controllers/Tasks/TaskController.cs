@@ -52,28 +52,22 @@ namespace TaskManagerApi.Controllers.Tasks
         [HttpPut("{id}")]
         public async System.Threading.Tasks.Task<IActionResult> PutTask(int id, Models.Tasks.Task<string> task)
         {
-            if (id != task.Id)
+
+            var existingTask = await _context.Tasks.FindAsync(id);
+
+            if (existingTask == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(task).State = EntityState.Modified;
+            // Update properties
+            existingTask.Name = task.Name;
+            existingTask.Description = task.Description;
+            existingTask.DueDate = task.DueDate;
+            existingTask.Status = task.Status;
+            existingTask.AdditionalData = task.AdditionalData;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TaskExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -92,11 +86,6 @@ namespace TaskManagerApi.Controllers.Tasks
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool TaskExists(int id)
-        {
-            return _context.Tasks.Any(e => e.Id == id);
         }
     }
 }
