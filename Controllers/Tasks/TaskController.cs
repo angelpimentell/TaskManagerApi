@@ -19,9 +19,24 @@ namespace TaskManagerApi.Controllers.Tasks
 
         // GET: api/Tasks
         [HttpGet]
-        public async System.Threading.Tasks.Task<ActionResult<IEnumerable<Models.Tasks.Task<string>>>> GetTasks()
+        public async System.Threading.Tasks.Task<ActionResult<IEnumerable<Models.Tasks.Task<string>>>> GetTasks(
+            [FromQuery] DateTime? dueDate,
+            [FromQuery] string? status
+            )
         {
-            return await _context.Tasks.ToListAsync();
+            var query = _context.Tasks.AsQueryable();
+
+            if (dueDate.HasValue)
+            {
+                query = query.Where(t => t.DueDate.Date == dueDate.Value.Date);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(t => t.Status == status);
+            }
+
+            return await query.ToListAsync();
         }
 
         // GET: api/Tasks/5
