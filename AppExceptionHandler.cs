@@ -6,8 +6,14 @@ namespace TaskManagerApi
     {
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            await httpContext.Response.WriteAsJsonAsync("Something wrong D:");
+            var response = new ErrorResponse()
+            {
+                Success = false,
+                Message = exception.Message,
+                ErrorCode = 500
+            };
 
+            await httpContext.Response.WriteAsJsonAsync(response);
 
             return true;
         }

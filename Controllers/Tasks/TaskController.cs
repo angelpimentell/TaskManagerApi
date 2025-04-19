@@ -47,7 +47,7 @@ namespace TaskManagerApi.Controllers.Tasks
 
             if (task == null)
             {
-                return NotFound();
+                throw new Exception("Resource not found");
             }
 
             return task;
@@ -72,7 +72,7 @@ namespace TaskManagerApi.Controllers.Tasks
 
             if (existingTask == null)
             {
-                return NotFound();
+                throw new Exception("Resource not found");
             }
 
             // Update properties
@@ -94,7 +94,7 @@ namespace TaskManagerApi.Controllers.Tasks
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
-                return NotFound();
+                throw new Exception("Resource not found");
             }
 
             _context.Tasks.Remove(task);
