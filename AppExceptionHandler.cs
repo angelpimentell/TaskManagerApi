@@ -10,7 +10,7 @@ namespace TaskManagerApi
             {
                 Success = false,
                 Message = exception.Message,
-                ErrorCode = 500
+                StatusCode = 500
             };
 
             await httpContext.Response.WriteAsJsonAsync(response);

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using TaskManagerApi.Data;
 using TaskManagerApi.Models.Tasks;
 using System.Threading.Tasks;
+using System;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskManagerApi.Controllers.Tasks
 {
@@ -36,7 +38,16 @@ namespace TaskManagerApi.Controllers.Tasks
                 query = query.Where(t => t.Status == status);
             }
 
-            return await query.ToListAsync();
+            var data = await query.ToListAsync();
+
+            return new JsonResult(new
+            {
+                data = data,
+                success = true,
+                message = "Successfully readed!",
+                statusCode = 200
+            })
+            { StatusCode = 200 };
         }
 
         // GET: api/Tasks/5
@@ -50,7 +61,14 @@ namespace TaskManagerApi.Controllers.Tasks
                 throw new Exception("Resource not found");
             }
 
-            return task;
+            return new JsonResult(new
+            {
+                data = task,
+                success = true,
+                message = "Successfully readed!",
+                statusCode = 200
+            })
+            { StatusCode = 200 };
         }
 
         // POST: api/Tasks
@@ -60,7 +78,16 @@ namespace TaskManagerApi.Controllers.Tasks
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+            CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+
+            return new JsonResult(new
+            {
+                data = task,
+                success = true,
+                message = "Successfully created!",
+                statusCode = 201
+            })
+            { StatusCode = 201 };
         }
 
         // PUT: api/Tasks/5
@@ -84,7 +111,14 @@ namespace TaskManagerApi.Controllers.Tasks
 
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return new JsonResult(new
+            {
+                data = existingTask,
+                success = true,
+                message = "Successfully updated!",
+                statusCode = 200
+            })
+            { StatusCode = 200 };
         }
 
         // DELETE: api/Tasks/5
@@ -98,9 +132,17 @@ namespace TaskManagerApi.Controllers.Tasks
             }
 
             _context.Tasks.Remove(task);
+
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return new JsonResult(new
+            {
+                data = null as object,
+                success = true,
+                message = "Successfully removed!",
+                statusCode = 200
+            })
+            { StatusCode = 200 };
         }
     }
 }
