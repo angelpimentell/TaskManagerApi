@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerApi;
 using TaskManagerApi.Data;
@@ -16,6 +17,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddOpenApiDocument();
 
 builder.Services.AddExceptionHandler<AppExceptionHandler>();
+
+// Customize validation error response
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errorMessage = "";
+        var errors = context.ModelState
+            .Where(e => e.Value.Errors.Count > 0)
+            .Select(e => new
+            {
+                Field = e.Key,
+                Errors = e.Value.Errors.Select(x => x.ErrorMessage)
+            });
+
+        errorMessage = string.Join(", ", errors.Select(e => e.Errors.ToList()[0].Replace(".", "")));
+
+        return new BadRequestObjectResult(new
+        {
+            Message = errorMessage,
+            Success = false,
+            StatusCode = 400,
+        });
+    };
+});
 
 var app = builder.Build();
 
