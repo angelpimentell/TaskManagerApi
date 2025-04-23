@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerApi.Data;
-using TaskManagerApi.Models.Tasks;
-using System.Threading.Tasks;
-using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Task = TaskManagerApi.Models.Tasks.Task<string>;
+using Threading = System.Threading.Tasks;
 
 namespace TaskManagerApi.Controllers.Tasks
 {
@@ -21,7 +19,7 @@ namespace TaskManagerApi.Controllers.Tasks
 
         // GET: api/Tasks
         [HttpGet]
-        public async System.Threading.Tasks.Task<ActionResult<IEnumerable<Models.Tasks.Task<string>>>> GetTasks(
+        public async Threading.Task<ActionResult<IEnumerable<Task>>> GetTasks(
             [FromQuery] DateTime? dueDate,
             [FromQuery] string? status
             )
@@ -40,19 +38,12 @@ namespace TaskManagerApi.Controllers.Tasks
 
             var data = await query.ToListAsync();
 
-            return new JsonResult(new
-            {
-                data = data,
-                success = true,
-                message = "Successfully readed!",
-                statusCode = 200
-            })
-            { StatusCode = 200 };
+            return PrepareResponse("Successfully readed!", data, 200);
         }
 
         // GET: api/Tasks/5
         [HttpGet("{id}")]
-        public async System.Threading.Tasks.Task<ActionResult<Models.Tasks.Task<string>>> GetTask(int id)
+        public async Threading.Task<ActionResult<Task>> GetTask(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
 
@@ -61,38 +52,24 @@ namespace TaskManagerApi.Controllers.Tasks
                 throw new Exception("Resource not found");
             }
 
-            return new JsonResult(new
-            {
-                data = task,
-                success = true,
-                message = "Successfully readed!",
-                statusCode = 200
-            })
-            { StatusCode = 200 };
+            return PrepareResponse("Successfully readed!", task, 200);
         }
 
         // POST: api/Tasks
         [HttpPost]
-        public async System.Threading.Tasks.Task<IActionResult> PostTask(Models.Tasks.Task<string> task)
+        public async Threading.Task<IActionResult> PostTask(Task task)
         {
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
             CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
 
-            return new JsonResult(new
-            {
-                data = task,
-                success = true,
-                message = "Successfully created!",
-                statusCode = 201
-            })
-            { StatusCode = 201 };
+            return PrepareResponse("Successfully created!", task, 201);
         }
 
         // PUT: api/Tasks/5
         [HttpPut("{id}")]
-        public async System.Threading.Tasks.Task<IActionResult> PutTask(int id, Models.Tasks.Task<string> task)
+        public async Threading.Task<IActionResult> PutTask(int id, Task task)
         {
 
             var existingTask = await _context.Tasks.FindAsync(id);
@@ -111,19 +88,12 @@ namespace TaskManagerApi.Controllers.Tasks
 
             await _context.SaveChangesAsync();
 
-            return new JsonResult(new
-            {
-                data = existingTask,
-                success = true,
-                message = "Successfully updated!",
-                statusCode = 200
-            })
-            { StatusCode = 200 };
+            return PrepareResponse("Successfully updated!", existingTask, 200);
         }
 
         // DELETE: api/Tasks/5
         [HttpDelete("{id}")]
-        public async System.Threading.Tasks.Task<IActionResult> DeleteTask(int id)
+        public async Threading.Task<IActionResult> DeleteTask(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
@@ -135,14 +105,19 @@ namespace TaskManagerApi.Controllers.Tasks
 
             await _context.SaveChangesAsync();
 
+            return PrepareResponse("Successfully removed!", null as object, 200);
+        }
+
+        public JsonResult PrepareResponse(string message, object data, int statusCode)
+        {
             return new JsonResult(new
             {
-                data = null as object,
+                data = data,
                 success = true,
-                message = "Successfully removed!",
-                statusCode = 200
+                message = message,
+                statusCode = statusCode
             })
-            { StatusCode = 200 };
+            { StatusCode = statusCode };
         }
     }
 }
