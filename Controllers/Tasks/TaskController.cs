@@ -38,7 +38,14 @@ namespace TaskManagerApi.Controllers.Tasks
 
             var data = await query.ToListAsync();
 
-            return PrepareResponse("Successfully readed!", data, 200);
+            return new JsonResult(new
+            {
+                data = data,
+                success = true,
+                message = "Successfully readed!",
+                statusCode = 200
+            })
+            { StatusCode = 200 };
         }
 
         // GET: api/Tasks/5
@@ -52,7 +59,15 @@ namespace TaskManagerApi.Controllers.Tasks
                 throw new Exception("Resource not found");
             }
 
-            return PrepareResponse("Successfully readed!", task, 200);
+
+            return new JsonResult(new
+            {
+                data = task,
+                success = true,
+                message = "Successfully readed!",
+                statusCode = 200
+            })
+            { StatusCode = 200 };
         }
 
         // POST: api/Tasks
@@ -64,7 +79,15 @@ namespace TaskManagerApi.Controllers.Tasks
 
             CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
 
-            return PrepareResponse("Successfully created!", task, 201);
+
+            return new JsonResult(new
+            {
+                data = task,
+                success = true,
+                message = "Successfully created!",
+                statusCode = 201
+            })
+            { StatusCode = 201 };
         }
 
         // PUT: api/Tasks/5
@@ -88,7 +111,15 @@ namespace TaskManagerApi.Controllers.Tasks
 
             await _context.SaveChangesAsync();
 
-            return PrepareResponse("Successfully updated!", existingTask, 200);
+
+            return new JsonResult(new
+            {
+                data = existingTask,
+                success = true,
+                message = "Successfully updated!",
+                statusCode = 200
+            })
+            { StatusCode = 200 };
         }
 
         // DELETE: api/Tasks/5
@@ -105,19 +136,17 @@ namespace TaskManagerApi.Controllers.Tasks
 
             await _context.SaveChangesAsync();
 
-            return PrepareResponse("Successfully removed!", null as object, 200);
-        }
 
-        public JsonResult PrepareResponse(string message, object data, int statusCode)
-        {
             return new JsonResult(new
             {
-                data = data,
+                data = null as object,
                 success = true,
-                message = message,
-                statusCode = statusCode
+                message = "Successfully removed!",
+                statusCode = 200
             })
-            { StatusCode = statusCode };
+            { StatusCode = 200 };
         }
+
+
     }
 }
