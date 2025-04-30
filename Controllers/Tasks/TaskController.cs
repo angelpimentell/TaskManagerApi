@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerApi.Data;
-using Task = TaskManagerApi.Models.Tasks.Task<string>;
 using Threading = System.Threading.Tasks;
+using Task = TaskManagerApi.Models.Tasks.Task<string>;
 
 namespace TaskManagerApi.Controllers.Tasks
 {
@@ -27,25 +27,14 @@ namespace TaskManagerApi.Controllers.Tasks
             var query = _context.Tasks.AsQueryable();
 
             if (dueDate.HasValue)
-            {
                 query = query.Where(t => t.DueDate.Date == dueDate.Value.Date);
-            }
 
             if (!string.IsNullOrEmpty(status))
-            {
                 query = query.Where(t => t.Status == status);
-            }
 
             var data = await query.ToListAsync();
 
-            return new JsonResult(new
-            {
-                data = data,
-                success = true,
-                message = "Successfully readed!",
-                statusCode = 200
-            })
-            { StatusCode = 200 };
+            return Ok(new { data, success = true, message = "Successfully read!", statusCode = 200 });
         }
 
         // GET: api/Tasks/5
@@ -55,19 +44,9 @@ namespace TaskManagerApi.Controllers.Tasks
             var task = await _context.Tasks.FindAsync(id);
 
             if (task == null)
-            {
-                throw new Exception("Resource not found");
-            }
+                return NotFound(new { success = false, message = "Resource not found", statusCode = 404 });
 
-
-            return new JsonResult(new
-            {
-                data = task,
-                success = true,
-                message = "Successfully readed!",
-                statusCode = 200
-            })
-            { StatusCode = 200 };
+            return Ok(new { data = task, success = true, message = "Successfully read!", statusCode = 200 });
         }
 
         // POST: api/Tasks
@@ -99,7 +78,7 @@ namespace TaskManagerApi.Controllers.Tasks
 
             if (existingTask == null)
             {
-                throw new Exception("Resource not found");
+                return NotFound(new { success = false, message = "Task not found", statusCode = 404 });
             }
 
             // Update properties
@@ -129,7 +108,7 @@ namespace TaskManagerApi.Controllers.Tasks
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
-                throw new Exception("Resource not found");
+                return NotFound(new { success = false, message = "Task not found", statusCode = 404 });
             }
 
             _context.Tasks.Remove(task);
