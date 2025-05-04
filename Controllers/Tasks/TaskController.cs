@@ -12,7 +12,7 @@ namespace TaskManagerApi.Controllers.Tasks
     {
         private readonly AppDbContext _context;
 
-        delegate IQueryable<Task> FilterTask (IQueryable<Task> query);
+        delegate IQueryable<Task> FilterTask(IQueryable<Task> query);
 
 
         public TasksController(AppDbContext context)
