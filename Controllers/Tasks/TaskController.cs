@@ -14,6 +14,7 @@ namespace TaskManagerApi.Controllers.Tasks
 
         delegate IQueryable<Task> FilterTask(IQueryable<Task> query);
 
+        Action<string> sendNotification = message => Console.WriteLine(message);
 
         public TasksController(AppDbContext context)
         {
@@ -122,6 +123,7 @@ namespace TaskManagerApi.Controllers.Tasks
 
             await _context.SaveChangesAsync();
 
+            sendNotification("Task removed!");
 
             return new JsonResult(new
             {
