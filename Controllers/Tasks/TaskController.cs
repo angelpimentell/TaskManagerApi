@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagerApi.Data;
 using Threading = System.Threading.Tasks;
+using TaskManagerApi.Factories;
 using Task = TaskManagerApi.Models.Tasks.Task<string>;
+using TaskManagerApi.Creators;
 
 namespace TaskManagerApi.Controllers.Tasks
 {
@@ -61,9 +63,25 @@ namespace TaskManagerApi.Controllers.Tasks
         [HttpPost]
         public async Threading.Task<IActionResult> PostTask(Task task)
         {
+            TaskCreator taskCreator;
+
+            if (task.RemainingDays <= 1)
+            {
+                taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.HIGH_PRIORITY);
+            }
+            else if (task.RemainingDays > 1 && task.RemainingDays <= 10)
+            {
+                taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.MEDIUM_PRIORITY);
+            }
+            else
+            {
+                taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.LOW_PRIORITY);
+            }
+
+            task = taskCreator.Create(task);
+
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
-
             CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
 
 
