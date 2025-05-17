@@ -12,6 +12,10 @@ namespace TaskManagerApi.Controllers.Tasks
     {
         private readonly AppDbContext _context;
 
+        delegate IQueryable<Task> FilterTask(IQueryable<Task> query);
+
+        Action<string> sendNotification = message => Console.WriteLine(message);
+
         public TasksController(AppDbContext context)
         {
             _context = context;
@@ -24,13 +28,17 @@ namespace TaskManagerApi.Controllers.Tasks
             [FromQuery] string? status
             )
         {
+
+            FilterTask filterTaskByDueDate = query => query.Where(t => t.DueDate.Date == dueDate.Value.Date);
+            FilterTask filtersStatus = query => query.Where(t => t.Status == status);
+
             var query = _context.Tasks.AsQueryable();
 
             if (dueDate.HasValue)
-                query = query.Where(t => t.DueDate.Date == dueDate.Value.Date);
+                query = filterTaskByDueDate(query);
 
             if (!string.IsNullOrEmpty(status))
-                query = query.Where(t => t.Status == status);
+                query = filtersStatus(query);
 
             var data = await query.ToListAsync();
 
@@ -115,6 +123,7 @@ namespace TaskManagerApi.Controllers.Tasks
 
             await _context.SaveChangesAsync();
 
+            sendNotification("Task removed!");
 
             return new JsonResult(new
             {
