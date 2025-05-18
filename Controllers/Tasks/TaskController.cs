@@ -5,6 +5,8 @@ using Threading = System.Threading.Tasks;
 using TaskManagerApi.Factories;
 using Task = TaskManagerApi.Models.Tasks.Task<string>;
 using TaskManagerApi.Creators;
+using System.Collections.Concurrent;
+using System.Reactive.Subjects;
 
 namespace TaskManagerApi.Controllers.Tasks
 {
@@ -18,9 +20,14 @@ namespace TaskManagerApi.Controllers.Tasks
 
         Action<string> sendNotification = message => Console.WriteLine(message);
 
+
+
         public TasksController(AppDbContext context)
         {
             _context = context;
+
+            var queue = new ConcurrentQueue<string>();
+            var subject = new Subject<string>();
         }
 
         // GET: api/Tasks

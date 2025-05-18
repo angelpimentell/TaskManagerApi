@@ -16,6 +16,7 @@
     </PackageReference>
     <PackageReference Include="NSwag.AspNetCore" Version="14.3.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.1" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
 
 </Project>
