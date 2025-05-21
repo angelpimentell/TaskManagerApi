@@ -20,14 +20,17 @@ namespace TaskManagerApi.Controllers.Tasks
 
         Action<string> sendNotification = message => Console.WriteLine(message);
 
+        private static readonly ConcurrentQueue<Task> CreateTaskQueue = new();
 
+        private static readonly ConcurrentQueue<Task> UpdateTaskQueue = new();
+
+        private static readonly ConcurrentQueue<Task> RemoveTaskQueue = new();
+
+        private static readonly object QueueLock = new();
 
         public TasksController(AppDbContext context)
         {
             _context = context;
-
-            var queue = new ConcurrentQueue<string>();
-            var subject = new Subject<string>();
         }
 
         // GET: api/Tasks
@@ -87,10 +90,17 @@ namespace TaskManagerApi.Controllers.Tasks
 
             task = taskCreator.Create(task);
 
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
-            CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+            CreateTaskQueue.Enqueue(task);
 
+            lock (QueueLock)
+            {
+                while (CreateTaskQueue.TryDequeue(out var nextTask))
+                {
+                    _context.Tasks.Add(nextTask);
+                }
+            }
+
+            await _context.SaveChangesAsync();
 
             return new JsonResult(new
             {
@@ -114,12 +124,20 @@ namespace TaskManagerApi.Controllers.Tasks
                 return NotFound(new { success = false, message = "Task not found", statusCode = 404 });
             }
 
-            // Update properties
-            existingTask.Name = task.Name;
-            existingTask.Description = task.Description;
-            existingTask.DueDate = task.DueDate;
-            existingTask.Status = task.Status;
-            existingTask.AdditionalData = task.AdditionalData;
+
+            UpdateTaskQueue.Enqueue(task);
+
+            lock (QueueLock)
+            {
+                while (UpdateTaskQueue.TryDequeue(out var nextTask))
+                {
+                    existingTask.Name = task.Name;
+                    existingTask.Description = task.Description;
+                    existingTask.DueDate = task.DueDate;
+                    existingTask.Status = task.Status;
+                    existingTask.AdditionalData = task.AdditionalData;
+                }
+            }
 
             await _context.SaveChangesAsync();
 
@@ -144,7 +162,15 @@ namespace TaskManagerApi.Controllers.Tasks
                 return NotFound(new { success = false, message = "Task not found", statusCode = 404 });
             }
 
-            _context.Tasks.Remove(task);
+            RemoveTaskQueue.Enqueue(task);
+
+            lock (QueueLock)
+            {
+                while (RemoveTaskQueue.TryDequeue(out var nextTask))
+                {
+                    _context.Tasks.Remove(nextTask);
+                }
+            }
 
             await _context.SaveChangesAsync();
 
