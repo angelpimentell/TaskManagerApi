@@ -28,6 +28,9 @@ namespace TaskManagerApi.Controllers.Tasks
 
         private static readonly object QueueLock = new();
 
+        private static Dictionary<DateTime, (int completed, int finished)> DailyStatsCache = new();
+
+
         public TasksController(AppDbContext context)
         {
             _context = context;
@@ -184,6 +187,59 @@ namespace TaskManagerApi.Controllers.Tasks
                 statusCode = 200
             })
             { StatusCode = 200 };
+        }
+
+        // GET: api/Tasks
+        [HttpGet("Count")]
+        public async Threading.Task<ActionResult<IEnumerable<Task>>> GetTaskCount([FromQuery] DateTime? date = null)
+        {
+
+            var targetDate = date?.Date ?? DateTime.Now.Date;
+
+            if (DailyStatsCache.ContainsKey(targetDate))
+            {
+                var cached = DailyStatsCache[targetDate];
+                return Ok(new
+                {
+                    data = new
+                    {
+                        date = targetDate,
+                        completedTasks = cached.completed,
+                        finishedTasks = cached.finished,
+                        total = cached.completed + cached.finished
+                    },
+                    success = true,
+                    message = $"Cached stats retrieved for {targetDate:yyyy-MM-dd}",
+                    statusCode = 200
+                });
+            }
+
+
+            var completedCount = await _context.Tasks
+                .Where(t => t.Status == "Completed" && t.DueDate.Date == targetDate)
+                .CountAsync();
+
+            var finishedCount = await _context.Tasks
+                .Where(t => t.Status != "Completed" && t.DueDate.Date == targetDate)
+                .CountAsync();
+
+
+            DailyStatsCache[targetDate] = (completedCount, finishedCount);
+
+
+            return Ok(new
+            {
+                data = new
+                {
+                    date = targetDate,
+                    completedTasks = completedCount,
+                    finishedTasks = finishedCount,
+                    total = completedCount + finishedCount
+                },
+                success = true,
+                message = $"Fresh stats calculated for {targetDate:yyyy-MM-dd}",
+                statusCode = 200
+            });
         }
 
 
