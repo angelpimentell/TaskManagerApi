@@ -1,9 +1,34 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using TaskManagerApi;
 using TaskManagerApi.Data;
+using TaskManagerApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// JWT
+builder.Services.AddSingleton<JwtTokenService>();
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    });
+builder.Services.AddAuthorization();
 
 // Add services to the container.
 
@@ -56,6 +81,8 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler(_ => { });  
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication(); // JWT
 
 app.UseAuthorization();
 
