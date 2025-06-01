@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TaskManagerApi.Attributes;
 
-namespace TaskManagerApi.Models.Tasks
+namespace TaskManagerApi.Models
 {
 
     public class Task<T>

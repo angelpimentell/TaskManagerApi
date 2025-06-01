@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using TaskManagerApi.Data;
 using Threading = System.Threading.Tasks;
 using TaskManagerApi.Factories;
-using Task = TaskManagerApi.Models.Tasks.Task<string>;
+using Task = TaskManagerApi.Models.Task<string>;
 using TaskManagerApi.Creators;
 using System.Collections.Concurrent;
-using System.Reactive.Subjects;
+using TaskManagerApi.Models;
 
-namespace TaskManagerApi.Controllers.Tasks
+namespace TaskManagerApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
