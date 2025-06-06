@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using TaskManagerApi.Data;
 
 namespace LocalRNC.Controllers
 {
@@ -15,10 +17,12 @@ namespace LocalRNC.Controllers
     public class LoginController : ControllerBase
     {
         private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public LoginController( IConfiguration config)
+        public LoginController(AppDbContext context, IConfiguration config)
         {
             _config = config;
+            _context = context;
         }
 
         [HttpPost("login")]
@@ -32,7 +36,10 @@ namespace LocalRNC.Controllers
                 return BadRequest(new { Message = "Email and password are required." });
             }
 
-            if (email == "admin" && password == "admin")
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+
+            if (user != null && email == user.Email && password == user.Password)
             {
                 var tokenString = GenerateJWT();
                 return Ok(new { Token = tokenString });
