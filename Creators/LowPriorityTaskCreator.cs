@@ -1,11 +1,10 @@
-﻿
-namespace TaskManagerApi.Creators
+﻿namespace TaskManagerApi.Creators
 {
     public class LowPriorityTaskCreator : TaskCreator
     {
-        public override Models.Tasks.Task<string> Create(Models.Tasks.Task<string> task)
+        public override Models.Task<string> Create(Models.Task<string> task)
         {
-            return new Models.Tasks.Task<string>
+            return new Models.Task<string>
             {
                 Name = task.Name,
                 Description = task.Description,
