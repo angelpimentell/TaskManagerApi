@@ -7,6 +7,7 @@ using Task = TaskManagerApi.Models.Task<string>;
 using TaskManagerApi.Creators;
 using System.Collections.Concurrent;
 using TaskManagerApi.Models;
+using Microsoft.AspNetCore.SignalR;
 
 namespace TaskManagerApi.Controllers
 {
@@ -14,6 +15,8 @@ namespace TaskManagerApi.Controllers
     [ApiController]
     public class TasksController : ControllerBase
     {
+        private readonly IHubContext<NotificationHub> _hubContext;
+
         private readonly AppDbContext _context;
 
         delegate IQueryable<Task> FilterTask(IQueryable<Task> query);
@@ -31,9 +34,10 @@ namespace TaskManagerApi.Controllers
         private static Dictionary<DateTime, (int completed, int finished)> DailyStatsCache = new();
 
 
-        public TasksController(AppDbContext context)
+        public TasksController(AppDbContext context, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: api/Tasks
@@ -104,6 +108,8 @@ namespace TaskManagerApi.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.All.SendAsync("Task creaded!");
 
             return new JsonResult(new
             {
