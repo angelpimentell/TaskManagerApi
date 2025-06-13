@@ -4,9 +4,9 @@ namespace TaskManagerApi
 {
     public class NotificationHub : Hub
     {
-        public async Task Send(string Message)
+        public override async Task OnConnectedAsync()
         {
-            await Clients.All.SendAsync(Message);
+            await Clients.All.SendAsync("Global", "Connected to socket!");
         }
     }
 }
