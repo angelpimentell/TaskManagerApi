@@ -1,13 +1,30 @@
-﻿using Xunit;
+﻿using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
+using TaskManagerApi;
 
 namespace Tests
 {
-    public class UnitTest1
+    public class UnitTest1 : IClassFixture<WebApplicationFactory<Program>>
     {
-        [Fact]
-        public void ShouldRejectRequestsWithoutToken()
+        private readonly HttpClient _client;
+
+        public UnitTest1(WebApplicationFactory<Program> factory)
         {
-            Assert.True(true);
+            _client = factory.CreateClient();
+        }
+
+
+        [Fact]
+        public async Task ShouldRejectRequestsWithoutToken()
+        {
+            // Act: Hacemos una petición GET al endpoint protegido
+            var response = await _client.GetAsync("/api/tasks"); // ajusta la ruta a tu endpoint real
+
+            // Assert: Debería retornar 401 Unauthorized
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
         [Fact]
