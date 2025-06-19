@@ -134,4 +134,4 @@ app.MapControllers();
 
 app.Run();
 
-partial class Program { };
+public partial class Program { };

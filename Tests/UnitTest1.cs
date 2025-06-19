@@ -19,11 +19,11 @@ namespace Tests
         public async Task ShouldRejectRequestsWithoutToken()
         {
             // Arrange
-            var factory = new WebApplicationFactory<Program>();
+            var factory = new CustomWebApplicationFactory();
             var client = factory.CreateClient();
 
             // Act
-            var response = await client.GetAsync("/api/secure-endpoint"); // Cambia a tu endpoint protegido
+            var response = await client.GetAsync("/api/auth/login"); // Cambia a tu endpoint protegido
 
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
