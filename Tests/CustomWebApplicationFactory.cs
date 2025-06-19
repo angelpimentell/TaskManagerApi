@@ -3,24 +3,36 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using TaskManagerApi;
+using Microsoft.EntityFrameworkCore;
+using TaskManagerApi.Data;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<StartupMarker>
 {
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        // Puedes configurar entornos o servicios aquí si quieres
-        return base.CreateHost(builder);
-    }
+
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Development"); // o "Testing"
+        builder.UseEnvironment("Testing");
 
-        // Puedes sobrescribir configuraciones, inyectar mocks, etc.
         builder.ConfigureServices(services =>
         {
-            // Ejemplo: reemplazar un servicio real con uno falso para pruebas
-            // services.AddSingleton<IMiServicio, MiServicioMock>();
+            // Eliminar la configuración previa de AppDbContext con SQL Server
+            services.Remove(
+                services.SingleOrDefault(d => d.ServiceType == typeof(IDbContextOptionsConfiguration<AppDbContext>))
+            );
+
+            // Registrar base de datos en memoria para pruebas
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseInMemoryDatabase("InMemoryTestDb");
+            });
+
+            // Crear el service provider para inicializar la BD con datos de prueba
+            var sp = services.BuildServiceProvider();
+
         });
     }
+
 }
