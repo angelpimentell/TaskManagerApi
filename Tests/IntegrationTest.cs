@@ -42,6 +42,9 @@ namespace Tests
             _unauthenticatedUser = _factory.CreateClient();
             _authenticatedUser = _factory.CreateClient();
             _authenticatedUser.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtService.GenerateJWT());
+
+            _context.Database.EnsureDeleted();
+            _context.Database.EnsureCreated();
         }
 
 
@@ -91,7 +94,6 @@ namespace Tests
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
         }
 
         [Fact]
@@ -103,11 +105,10 @@ namespace Tests
                 {
                     Name = "Completar reporte",
                     Description = "Terminar el reporte mensual de ventas",
-                    DueDate = "2025-04-01T00:00:00",
+                    DueDate = DateTime.Now.AddDays(-5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
                     Status = "En progreso",
                 }),
-                Encoding.UTF8,
-                "application/json"
+                Encoding.UTF8, "application/json"
             );
 
             // Act
@@ -115,12 +116,6 @@ namespace Tests
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        }
-
-        [Fact]
-        public void ShouldAssignDefaultValuesWhenFieldsAreMissing()
-        {
-            Assert.True(true);
         }
 
         [Fact]
@@ -144,14 +139,14 @@ namespace Tests
             );
 
             // Act
-            var response = await _authenticatedUser.GetAsync($"/api/Tasks/{task.Id}");
+            var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
-            Assert.Equal(5, task.RemainingDays);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(5, _context.Tasks.Find(task.Id).RemainingDays);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        [Fact]
+        [Fact] 
         public async Threading.Task ShouldCreateTaskSuccessfully()
         {
             // Arrange
@@ -160,7 +155,7 @@ namespace Tests
                 {
                     Name = "Completar reporte",
                     Description = "Terminar el reporte mensual de ventas",
-                    DueDate = "2025-07-01T00:00:00",
+                    DueDate = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
                     Status = "En progreso",
                 }),
                 Encoding.UTF8,
@@ -171,6 +166,7 @@ namespace Tests
             var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
+            Assert.Equal(1, _context.Tasks.Count());
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
