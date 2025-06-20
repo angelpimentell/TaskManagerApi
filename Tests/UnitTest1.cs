@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Newtonsoft.Json;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using TaskManagerApi.Data;
 using TaskManagerApi.Models;
+using TaskManagerApi.Services;
 
 namespace Tests
 {
@@ -15,7 +18,8 @@ namespace Tests
     {
         private readonly CustomWebApplicationFactory _factory;
         private AppDbContext _context;
-        private HttpClient _unauthenticatedUser;
+        private HttpClient _unauthenticatedUser, _authenticatedUser;
+        private JwtTokenService _jwtService;
 
 
         public UnitTest1()
@@ -24,8 +28,19 @@ namespace Tests
 
             var scope = _factory.Services.CreateScope();
 
+            var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+
+
             _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            _jwtService = new JwtTokenService(config);
+
             _unauthenticatedUser = _factory.CreateClient();
+            _authenticatedUser = _factory.CreateClient();
+            _authenticatedUser.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtService.GenerateJWT());
+
         }
 
 
@@ -71,10 +86,10 @@ namespace Tests
             );
 
             // Act
-            var response = await _unauthenticatedUser.PostAsync("/api/Tasks", body);
+            var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         }
 
