@@ -175,21 +175,22 @@ namespace Tests
         {
             var task = new Task
             {
-                Name = "test@test.com",
+                Name = "Test",
                 Description = "admin",
-                Status = "Test"
+                Status = "Test",
+                DueDate = DateTime.Now.AddDays(1),
             };
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
+            var bodyData = new {
+                Name = "Completar reporte",
+                Description = "Terminar el reporte mensual de ventas",
+                DueDate = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
+                Status = "En progreso",
+            };
             var body = new StringContent(
-                JsonConvert.SerializeObject(new
-                {
-                    Name = "Completar reporte",
-                    Description = "Terminar el reporte mensual de ventas",
-                    DueDate = "2025-07-01T00:00:00",
-                    Status = "En progreso",
-                }),
+                JsonConvert.SerializeObject(bodyData),
                 Encoding.UTF8,
                 "application/json"
             );
@@ -198,6 +199,9 @@ namespace Tests
             var response = await _authenticatedUser.PutAsync($"/api/Tasks/{task.Id}", body);
 
             // Assert
+            _context.Entry(task).Reload();
+            Assert.Equal(bodyData.Name, task.Name);
+            Assert.Equal(bodyData.Description, task.Description);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -208,7 +212,8 @@ namespace Tests
             var task = new Task {
                 Name = "test@test.com", 
                 Description = "admin" ,
-                Status = "Test"
+                Status = "Test",
+                DueDate = DateTime.Now.AddDays(3),
             };
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
