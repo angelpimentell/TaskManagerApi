@@ -112,6 +112,29 @@ namespace Tests
         }
 
         [Fact]
+        public async Task ShouldCreateTaskSuccessfully()
+        {
+            // Arrange
+            var body = new StringContent(
+                JsonConvert.SerializeObject(new
+                {
+                    Name = "Completar reporte",
+                    Description = "Terminar el reporte mensual de ventas",
+                    DueDate = "2025-07-01T00:00:00",
+                    Status = "En progreso",
+                }),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
         public void ShouldEditTaskSuccessfully()
         {
             Assert.True(true);
