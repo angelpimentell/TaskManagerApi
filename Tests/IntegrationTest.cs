@@ -14,7 +14,7 @@ using TaskManagerApi.Services;
 
 namespace Tests
 {
-    public class UnitTest1
+    public class IntegrationTest
     {
         private readonly CustomWebApplicationFactory _factory;
         private AppDbContext _context;
@@ -22,7 +22,7 @@ namespace Tests
         private JwtTokenService _jwtService;
 
 
-        public UnitTest1()
+        public IntegrationTest()
         {
             _factory = new CustomWebApplicationFactory();
 
