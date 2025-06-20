@@ -42,7 +42,6 @@ namespace Tests
             _unauthenticatedUser = _factory.CreateClient();
             _authenticatedUser = _factory.CreateClient();
             _authenticatedUser.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtService.GenerateJWT());
-
         }
 
 
@@ -96,9 +95,26 @@ namespace Tests
         }
 
         [Fact]
-        public void ShouldReturnErrorWhenDueDateIsNotAValidDate()
+        public async Threading.Task ShouldReturnErrorWhenDueDateIsNotAValidDate()
         {
-            Assert.True(true);
+            // Arrange
+            var body = new StringContent(
+                JsonConvert.SerializeObject(new
+                {
+                    Name = "Completar reporte",
+                    Description = "Terminar el reporte mensual de ventas",
+                    DueDate = "2025-04-01T00:00:00",
+                    Status = "En progreso",
+                }),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Fact]
@@ -108,9 +124,31 @@ namespace Tests
         }
 
         [Fact]
-        public void ShouldCalculateRemainingDaysCorrectly()
+        public async Threading.Task ShouldCalculateRemainingDaysCorrectly()
         {
-            Assert.True(true);
+            // Arrange
+            var task = new Task
+            {
+                Name = "test@test.com",
+                Description = "admin",
+                Status = "Test",
+                DueDate = DateTime.Now.AddDays(5)
+            };
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync();
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(task),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.GetAsync($"/api/Tasks/{task.Id}");
+
+            // Assert
+            Assert.Equal(5, task.RemainingDays);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
@@ -137,9 +175,34 @@ namespace Tests
         }
 
         [Fact]
-        public void ShouldEditTaskSuccessfully()
+        public async Threading.Task ShouldEditTaskSuccessfully()
         {
-            Assert.True(true);
+            var task = new Task
+            {
+                Name = "test@test.com",
+                Description = "admin",
+                Status = "Test"
+            };
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync();
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(new
+                {
+                    Name = "Completar reporte",
+                    Description = "Terminar el reporte mensual de ventas",
+                    DueDate = "2025-07-01T00:00:00",
+                    Status = "En progreso",
+                }),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.PutAsync($"/api/Tasks/{task.Id}", body);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
@@ -153,12 +216,6 @@ namespace Tests
             };
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
-
-            var body = new StringContent(
-                JsonConvert.SerializeObject(task),
-                Encoding.UTF8,
-                "application/json"
-            );
 
             // Act
             var response = await _authenticatedUser.DeleteAsync($"/api/Tasks/{task.Id}");

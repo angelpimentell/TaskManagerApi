@@ -7,7 +7,7 @@ namespace TaskManagerApi.Models
     public class Task<T>
 
     {
-        Func<DateTime, int> calculateRemainingDays = (dueDate) => Math.Max(0, (dueDate - DateTime.Now).Days);
+        Func<DateTime, int> calculateRemainingDays = (dueDate) => Math.Max(0, (dueDate.Date - DateTime.Now.Date).Days);
 
         [Key]
         public int Id { get; set; } 
