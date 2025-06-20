@@ -15,7 +15,7 @@ namespace TaskManagerApi.Models
         public required string Description { get; set; }
 
         [FutureDate]
-        public DateTime DueDate { get; set; }
+        public required DateTime DueDate { get; set; }
         public required string Status { get; set; } 
         public T? AdditionalData { get; set; } 
 

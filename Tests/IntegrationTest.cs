@@ -247,7 +247,8 @@ namespace Tests
             {
                 Name = "test@test.com",
                 Description = "admin",
-                Status = "Test"
+                Status = "Test",
+                DueDate = DateTime.Now.AddDays(3).Date,
             };
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
@@ -260,8 +261,10 @@ namespace Tests
 
             // Act
             var response = await _authenticatedUser.GetAsync($"/api/Tasks/{task.Id}");
+            var content = await response.Content.ReadAsStringAsync();
 
             // Assert
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"test@test.com\",\"description\":\"admin\",\"dueDate\":\"2025-06-23T00:00:00-04:00\",\"status\":\"Test\",\"additionalData\":null,\"remainingDays\":3},\"success\":true,\"message\":\"Successfully read!\",\"statusCode\":200}", content);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
