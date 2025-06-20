@@ -11,6 +11,8 @@ using System.Text;
 using TaskManagerApi.Data;
 using TaskManagerApi.Models;
 using TaskManagerApi.Services;
+using Threading = System.Threading.Tasks;
+using Task = TaskManagerApi.Models.Task<string>;
 
 namespace Tests
 {
@@ -45,7 +47,7 @@ namespace Tests
 
 
         [Fact]
-        public async Task ShouldRejectRequestsWithoutToken()
+        public async Threading.Task ShouldRejectRequestsWithoutToken()
         {
             // Act
             var response = await _unauthenticatedUser.GetAsync("/api/Tasks");
@@ -55,7 +57,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Task ShouldLoginSuccsefully()
+        public async Threading.Task ShouldLoginSuccsefully()
         {
             // Arrange
             var user = new User { Email = "test@test.com", Password = "admin" };
@@ -76,7 +78,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Task ShouldReturnErrorWhenRequiredFieldsAreMissing()
+        public async Threading.Task ShouldReturnErrorWhenRequiredFieldsAreMissing()
         {
             // Arrange
             var body = new StringContent(
@@ -112,7 +114,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Task ShouldCreateTaskSuccessfully()
+        public async Threading.Task ShouldCreateTaskSuccessfully()
         {
             // Arrange
             var body = new StringContent(
@@ -141,15 +143,54 @@ namespace Tests
         }
 
         [Fact]
-        public void ShouldDeleteTaskSuccessfully()
+        public async Threading.Task ShouldDeleteTaskSuccessfully()
         {
-            Assert.True(true);
+            // Arrange
+            var task = new Task {
+                Name = "test@test.com", 
+                Description = "admin" ,
+                Status = "Test"
+            };
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync();
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(task),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.DeleteAsync($"/api/Tasks/{task.Id}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
-        public void ShouldReadTasksSuccessfully()
+        public async Threading.Task ShouldReadTasksSuccessfully()
         {
-            Assert.True(true);
+            // Arrange
+            var task = new Task
+            {
+                Name = "test@test.com",
+                Description = "admin",
+                Status = "Test"
+            };
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync();
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(task),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.GetAsync($"/api/Tasks/{task.Id}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
