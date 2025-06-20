@@ -15,7 +15,7 @@ namespace Tests
     {
         private readonly CustomWebApplicationFactory _factory;
         private AppDbContext _context;
-        private HttpClient _client;
+        private HttpClient _unauthenticatedUser;
 
 
         public UnitTest1()
@@ -25,7 +25,7 @@ namespace Tests
             var scope = _factory.Services.CreateScope();
 
             _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            _client = _factory.CreateClient();
+            _unauthenticatedUser = _factory.CreateClient();
         }
 
 
@@ -33,7 +33,7 @@ namespace Tests
         public async Task ShouldRejectRequestsWithoutToken()
         {
             // Act
-            var response = await _client.GetAsync("/api/Tasks");
+            var response = await _unauthenticatedUser.GetAsync("/api/Tasks");
 
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -54,7 +54,7 @@ namespace Tests
             );
 
             // Act
-            var response = await _client.PostAsync("/api/auth/login", body);
+            var response = await _unauthenticatedUser.PostAsync("/api/auth/login", body);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -71,7 +71,7 @@ namespace Tests
             );
 
             // Act
-            var response = await _client.PostAsync("/api/Tasks", body);
+            var response = await _unauthenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
