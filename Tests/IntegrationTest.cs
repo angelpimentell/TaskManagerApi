@@ -13,6 +13,7 @@ using TaskManagerApi.Models;
 using TaskManagerApi.Services;
 using Threading = System.Threading.Tasks;
 using Task = TaskManagerApi.Models.Task<string>;
+using System.Threading.Tasks;
 
 namespace Tests
 {
@@ -150,14 +151,16 @@ namespace Tests
         public async Threading.Task ShouldCreateTaskSuccessfully()
         {
             // Arrange
+            var bodyData = new
+            {
+                Name = "Completar reporte",
+                Description = "Terminar el reporte mensual de ventas",
+                DueDate = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
+                Status = "En progreso",
+            };
+
             var body = new StringContent(
-                JsonConvert.SerializeObject(new
-                {
-                    Name = "Completar reporte",
-                    Description = "Terminar el reporte mensual de ventas",
-                    DueDate = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
-                    Status = "En progreso",
-                }),
+                JsonConvert.SerializeObject(bodyData),
                 Encoding.UTF8,
                 "application/json"
             );
@@ -166,7 +169,13 @@ namespace Tests
             var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
-            Assert.Equal(1, _context.Tasks.Count());
+            Task task = _context.Tasks.Find(1);
+            Assert.Equal(bodyData.Name, task.Name);
+            Assert.Equal(bodyData.Description, task.Description);
+            Assert.True(DateTime.Now.AddDays(5).Date == task.DueDate);
+            Assert.Equal(bodyData.Status, task.Status);
+            Assert.Equal(5, task.RemainingDays);
+            Assert.Equal("Medium Priority", task.AdditionalData);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
@@ -227,6 +236,7 @@ namespace Tests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(0, _context.Tasks.Count());
         }
 
         [Fact]
