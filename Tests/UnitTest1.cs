@@ -15,64 +15,67 @@ namespace Tests
     {
         private readonly CustomWebApplicationFactory _factory;
         private AppDbContext _context;
+        private HttpClient _client;
 
 
         public UnitTest1()
         {
             _factory = new CustomWebApplicationFactory();
+
             var scope = _factory.Services.CreateScope();
+
             _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            _client = _factory.CreateClient();
         }
 
 
         [Fact]
         public async Task ShouldRejectRequestsWithoutToken()
         {
-            // Arrange
-            var client = _factory.CreateClient();
-
             // Act
-            var response = await client.GetAsync("/api/auth/login");
+            var response = await _client.GetAsync("/api/Tasks");
 
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
         [Fact]
-        public void ShouldRejectRequestsWithInvalidOrExpiredToken()
-        {
-            Assert.True(true);
-        }
-
-        [Fact]
         public async Task ShouldLoginSuccsefully()
         {
             // Arrange
-            var user = new User{Email = "test@test.com", Password = "admin"};
+            var user = new User { Email = "test@test.com", Password = "admin" };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            var client = _factory.CreateClient();
-            var loginContent = new StringContent(
-                JsonConvert.SerializeObject(new
-                {
-                    email = user.Email,
-                    password = user.Password
-                }),
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(new { email = user.Email, password = user.Password }),
                 Encoding.UTF8,
                 "application/json"
             );
 
-
             // Act
-            var response = await client.PostAsync("/api/auth/login", loginContent);
+            var response = await _client.PostAsync("/api/auth/login", body);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
-        public void ShouldReturnErrorWhenRequiredFieldsAreMissing()
+        public async Task ShouldReturnErrorWhenRequiredFieldsAreMissing()
         {
+            // Arrange
+            var body = new StringContent(
+                JsonConvert.SerializeObject(new { DueDate = "2025-01-01" }),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _client.PostAsync("/api/Tasks", body);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         }
 
         [Fact]
