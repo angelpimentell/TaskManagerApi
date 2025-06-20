@@ -264,7 +264,7 @@ namespace Tests
             var content = await response.Content.ReadAsStringAsync();
 
             // Assert
-            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"test@test.com\",\"description\":\"admin\",\"dueDate\":\"2025-06-23T00:00:00-04:00\",\"status\":\"Test\",\"additionalData\":null,\"remainingDays\":3},\"success\":true,\"message\":\"Successfully read!\",\"statusCode\":200}", content);
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"test@test.com\",\"description\":\"admin\",\"dueDate\":\"2025-06-23T00:00:00.0000000-04:00\",\"status\":\"Test\",\"additionalData\":null,\"remainingDays\":3},\"success\":true,\"message\":\"Successfully read!\",\"statusCode\":200}", content);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 

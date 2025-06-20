@@ -90,7 +90,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
-        var errorMessage = "";
+        List<string> errorMessages = new List<string>();
         var errors = context.ModelState
             .Where(e => e.Value.Errors.Count > 0)
             .Select(e => new
@@ -99,12 +99,39 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
                 Errors = e.Value.Errors.Select(x => x.ErrorMessage)
             });
 
-        errorMessage = string.Join(", ", errors.Select(e => e.Errors.ToList()[0].Replace(".", "")));
+        foreach (var errorM in errors)
+        {
+            string rawError = errorM.Errors.First();
+
+            // Shorten specific known verbose error messages
+            if (rawError.Contains("missing required properties including", StringComparison.OrdinalIgnoreCase))
+            {
+                // Extract property names from the message, e.g. 'dueDate'
+                var startIndex = rawError.IndexOf("including:", StringComparison.OrdinalIgnoreCase);
+                if (startIndex >= 0)
+                {
+                    var propsPart = rawError.Substring(startIndex + "including:".Length).Trim();
+                    // Remove trailing punctuation if any
+                    propsPart = propsPart.Trim(new char[] { '.', ' ', '"' });
+                    rawError = $"Missing required property: {propsPart}";
+                }
+                else
+                {
+                    rawError = "Missing required properties.";
+                }
+            }
+
+            // Remove trailing dots for neatness
+            rawError = rawError.TrimEnd('.');
+
+            errorMessages.Add(rawError);
+        }
 
         return new BadRequestObjectResult(new
         {
-            Message = errorMessage,
+            Message = "",
             Success = false,
+            Errors = errorMessages,
             StatusCode = 500,
         });
     };
