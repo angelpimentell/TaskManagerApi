@@ -105,7 +105,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
         {
             Message = errorMessage,
             Success = false,
-            StatusCode = 400,
+            StatusCode = 500,
         });
     };
 });
