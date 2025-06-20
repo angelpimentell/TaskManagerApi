@@ -202,6 +202,10 @@ namespace Tests
             _context.Entry(task).Reload();
             Assert.Equal(bodyData.Name, task.Name);
             Assert.Equal(bodyData.Description, task.Description);
+            Assert.True(DateTime.Now.AddDays(5).Date == task.DueDate);
+            Assert.Equal(bodyData.Status, task.Status);
+            Assert.Equal(5, task.RemainingDays);
+            Assert.Equal("Medium Priority", task.AdditionalData);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 

@@ -139,6 +139,23 @@ namespace TaskManagerApi.Controllers
             {
                 while (UpdateTaskQueue.TryDequeue(out var nextTask))
                 {
+                    TaskCreator taskCreator;
+
+                    if (task.RemainingDays <= 1)
+                    {
+                        taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.HIGH_PRIORITY);
+                    }
+                    else if (task.RemainingDays > 1 && task.RemainingDays <= 10)
+                    {
+                        taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.MEDIUM_PRIORITY);
+                    }
+                    else
+                    {
+                        taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.LOW_PRIORITY);
+                    }
+
+                    task = taskCreator.Create(task);
+
                     existingTask.Name = task.Name;
                     existingTask.Description = task.Description;
                     existingTask.DueDate = task.DueDate;
