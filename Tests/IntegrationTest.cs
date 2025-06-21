@@ -48,7 +48,7 @@ namespace Tests
 
 
         [Fact]
-        public async Threading.Task ShouldRejectRequestsWithoutToken()
+        public async Threading.Task GetTasks_ShouldReturnUnauthorized_WhenUserIsUnauthenticated()
         {
             // Act
             var response = await _unauthenticatedUser.GetAsync("/api/Tasks");
@@ -58,7 +58,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldLoginSuccsefully()
+        public async Threading.Task Login_ShouldReturnOk_WhenCredentialsAreValid()
         {
             // Arrange
             var user = new User { Email = "test@test.com", Password = "admin" };
@@ -79,7 +79,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldReturnErrorWhenRequiredFieldsAreMissing()
+        public async Threading.Task PostTask_ShouldReturnBadRequest_WhenRequiredFieldsAreMissing()
         {
             // Arrange
             var body = new StringContent(
@@ -99,7 +99,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldReturnErrorWhenDueDateIsNotAValidDate()
+        public async Threading.Task PostTask_ShouldReturnBadRequest_WhenDueDateIsInvalid()
         {
             // Arrange
             var body = new StringContent(
@@ -124,7 +124,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldCalculateRemainingDaysCorrectly()
+        public async Threading.Task PostTask_ShouldReturnCorrectValue_WhenDueDateIsInFuture()
         {
             // Arrange
             var task = new Task
@@ -152,7 +152,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldCreateTaskSuccessfully()
+        public async Threading.Task PostTask_ShouldReturnCreated_WhenDataIsValid()
         {
             // Arrange
             var bodyData = new
@@ -188,7 +188,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldEditTaskSuccessfully()
+        public async Threading.Task PutTask_ShouldReturnOk_WhenDataIsValid()
         {
             var task = new Task
             {
@@ -231,7 +231,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldDeleteTaskSuccessfully()
+        public async Threading.Task DeleteTask_ShouldReturnNoContent_WhenTaskExistsAndUserIsAuthorized()
         {
             // Arrange
             var task = new Task
@@ -253,7 +253,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldReadTasksSuccessfully()
+        public async Threading.Task GetTask_ShouldReturnOkAndTaskList_WhenUserIsAuthenticated()
         {
             // Arrange
             var task = new Task
@@ -283,7 +283,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task ShouldEmitNotificationWhenTaskIsCreated()
+        public async Threading.Task PostTask_ShouldPublishTaskCreatedEvent_WhenTaskIsCreated()
         {
             // Arrange
             var baseUri = _authenticatedUser.BaseAddress!.ToString().TrimEnd('/');
