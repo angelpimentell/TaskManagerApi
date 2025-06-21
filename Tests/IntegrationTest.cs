@@ -13,7 +13,10 @@ using TaskManagerApi.Models;
 using TaskManagerApi.Services;
 using Threading = System.Threading.Tasks;
 using Task = TaskManagerApi.Models.Task<string>;
+using Microsoft.AspNetCore.SignalR.Client;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using YamlDotNet.Core.Tokens;
 
 namespace Tests
 {
@@ -147,7 +150,7 @@ namespace Tests
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        [Fact] 
+        [Fact]
         public async Threading.Task ShouldCreateTaskSuccessfully()
         {
             // Arrange
@@ -192,7 +195,8 @@ namespace Tests
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
-            var bodyData = new {
+            var bodyData = new
+            {
                 Name = "Completar reporte",
                 Description = "Terminar el reporte mensual de ventas",
                 DueDate = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
@@ -222,9 +226,10 @@ namespace Tests
         public async Threading.Task ShouldDeleteTaskSuccessfully()
         {
             // Arrange
-            var task = new Task {
-                Name = "test@test.com", 
-                Description = "admin" ,
+            var task = new Task
+            {
+                Name = "test@test.com",
+                Description = "admin",
                 Status = "Test",
                 DueDate = DateTime.Now.AddDays(3),
             };
@@ -269,9 +274,60 @@ namespace Tests
         }
 
         [Fact]
-        public void ShouldEmitNotificationWhenTaskIsCreated()
+        public async Threading.Task ShouldEmitNotificationWhenTaskIsCreated()
         {
-            Assert.True(true);
+            // Arrange
+            var baseUri = _authenticatedUser.BaseAddress!.ToString().TrimEnd('/');
+            var hubUrl = $"{baseUri}/notificationHub";
+            var token = _authenticatedUser.DefaultRequestHeaders.Authorization.ToString().Replace("Bearer ", "");
+            var welcomeReceived = new TaskCompletionSource<string>();
+            var taskCreatedReceived = new TaskCompletionSource<string>();
+            var bodyData = new
+            {
+                Name = "Completar reporte",
+                Description = "Terminar el reporte mensual de ventas",
+                DueDate = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
+                Status = "En progreso",
+            };
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(bodyData),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var connection = new HubConnectionBuilder()
+            .WithUrl(hubUrl, options =>
+            {
+                options.AccessTokenProvider = () => Threading.Task.FromResult(token);
+                options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
+            })
+            .WithAutomaticReconnect()
+            .Build();
+
+
+            connection.On<string>("Global", message =>
+            {
+                if (message == "Connected to socket!")
+                    welcomeReceived.TrySetResult(message);
+                else if (message == "Task created!")
+                    taskCreatedReceived.TrySetResult(message);
+            });
+
+            await connection.StartAsync();
+
+            var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
+
+            var welcomeDone = await Threading.Task.WhenAny(welcomeReceived.Task, Threading.Task.Delay(3000));
+            var taskCreatedDone = await Threading.Task.WhenAny(taskCreatedReceived.Task, Threading.Task.Delay(3000));
+
+
+            // Assert
+            Assert.True(welcomeDone == welcomeReceived.Task);
+            Assert.True(taskCreatedDone == taskCreatedReceived.Task);
+            Assert.Equal("Connected to socket!", welcomeReceived.Task.Result);
+            Assert.Equal("Task created!", taskCreatedReceived.Task.Result);
         }
     }
 }

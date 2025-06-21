@@ -108,7 +108,7 @@ namespace TaskManagerApi.Controllers
 
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.All.SendAsync("Global", "Task creaded!");
+            await _hubContext.Clients.All.SendAsync("Global", "Task created!");
 
             return new JsonResult(new
             {
