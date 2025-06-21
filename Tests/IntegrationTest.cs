@@ -174,8 +174,8 @@ namespace Tests
 
             // Assert
             var contentResponse = await response.Content.ReadAsStringAsync();
-
-            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"2025-06-25T00:00:00.0000000\",\"status\":\"En progreso\",\"additionalData\":\"Medium Priority\",\"remainingDays\":5},\"success\":true,\"message\":\"Successfully created!\",\"statusCode\":201}", contentResponse);
+            var dueDateStr = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff");
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"" + dueDateStr + "\",\"status\":\"En progreso\",\"additionalData\":\"Medium Priority\",\"remainingDays\":5},\"success\":true,\"message\":\"Successfully created!\",\"statusCode\":201}", contentResponse);
 
             Task task = _context.Tasks.Find(1);
             Assert.Equal(bodyData.Name, task.Name);
@@ -218,7 +218,8 @@ namespace Tests
 
             // Assert
             var contentResponse = await response.Content.ReadAsStringAsync();
-            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"2025-06-25T00:00:00.0000000\",\"status\":\"En progreso\",\"additionalData\":\"Medium Priority\",\"remainingDays\":5},\"success\":true,\"message\":\"Successfully updated!\",\"statusCode\":200}", contentResponse);
+            var dueDateStr = DateTime.Now.AddDays(5).Date.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff");
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"" + dueDateStr + "\",\"status\":\"En progreso\",\"additionalData\":\"Medium Priority\",\"remainingDays\":5},\"success\":true,\"message\":\"Successfully updated!\",\"statusCode\":200}", contentResponse);
 
             _context.Entry(task).Reload();
             Assert.Equal(bodyData.Name, task.Name);
@@ -277,8 +278,8 @@ namespace Tests
 
             // Assert
             var contentResponse = await response.Content.ReadAsStringAsync();
-
-            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"test@test.com\",\"description\":\"admin\",\"dueDate\":\"2025-06-23T00:00:00.0000000-04:00\",\"status\":\"Test\",\"additionalData\":null,\"remainingDays\":3},\"success\":true,\"message\":\"Successfully read!\",\"statusCode\":200}", contentResponse);
+            var dueDateStr = DateTime.Now.AddDays(3).Date.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffffK");
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"test@test.com\",\"description\":\"admin\",\"dueDate\":\"" + dueDateStr + "\",\"status\":\"Test\",\"additionalData\":null,\"remainingDays\":3},\"success\":true,\"message\":\"Successfully read!\",\"statusCode\":200}", contentResponse);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
