@@ -124,7 +124,10 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
             // Remove trailing dots for neatness
             rawError = rawError.TrimEnd('.');
 
-            errorMessages.Add(rawError);
+            if (rawError != "The task field is required")
+            {
+                errorMessages.Add(rawError);
+            }
         }
 
         return new BadRequestObjectResult(new

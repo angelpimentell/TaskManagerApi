@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http.Headers;
@@ -14,9 +13,6 @@ using TaskManagerApi.Services;
 using Threading = System.Threading.Tasks;
 using Task = TaskManagerApi.Models.Task<string>;
 using Microsoft.AspNetCore.SignalR.Client;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using YamlDotNet.Core.Tokens;
 
 namespace Tests
 {
@@ -26,7 +22,6 @@ namespace Tests
         private AppDbContext _context;
         private HttpClient _unauthenticatedUser, _authenticatedUser;
         private JwtTokenService _jwtService;
-
 
         public IntegrationTest()
         {
@@ -97,6 +92,8 @@ namespace Tests
             var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
+            var contentResponse = await response.Content.ReadAsStringAsync();
+
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -266,10 +263,11 @@ namespace Tests
 
             // Act
             var response = await _authenticatedUser.GetAsync($"/api/Tasks/{task.Id}");
-            var content = await response.Content.ReadAsStringAsync();
 
             // Assert
-            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"test@test.com\",\"description\":\"admin\",\"dueDate\":\"2025-06-23T00:00:00.0000000-04:00\",\"status\":\"Test\",\"additionalData\":null,\"remainingDays\":3},\"success\":true,\"message\":\"Successfully read!\",\"statusCode\":200}", content);
+            var contentResponse = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"test@test.com\",\"description\":\"admin\",\"dueDate\":\"2025-06-23T00:00:00.0000000-04:00\",\"status\":\"Test\",\"additionalData\":null,\"remainingDays\":3},\"success\":true,\"message\":\"Successfully read!\",\"statusCode\":200}", contentResponse);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
