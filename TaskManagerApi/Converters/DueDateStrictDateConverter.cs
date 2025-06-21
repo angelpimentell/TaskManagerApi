@@ -15,16 +15,16 @@ public class DueDateStrictDateConverter : JsonConverter<DateTime>
             }
             else
             {
-                throw new JsonException("The field DueDate must be a valid date.");
+                throw new JsonException("The field 'dueDate' must be a valid date.");
             }
         }
         else if (reader.TokenType == JsonTokenType.Null)
         {
-            throw new JsonException("The field DueDate is required.");
+            throw new JsonException("The field 'dueDate' is required.");
         }
         else
         {
-            throw new JsonException("The field DueDate must be a valid date string.");
+            throw new JsonException("The field 'dueDate' must be a valid date string.");
         }
     }
 

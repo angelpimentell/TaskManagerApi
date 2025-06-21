@@ -83,7 +83,7 @@ namespace Tests
         {
             // Arrange
             var body = new StringContent(
-                JsonConvert.SerializeObject(new { DueDate = "2025-01-01" }),
+                JsonConvert.SerializeObject(new { AdditionalData = "2025-01-01" }),
                 Encoding.UTF8,
                 "application/json"
             );
@@ -94,6 +94,7 @@ namespace Tests
             // Assert
             var contentResponse = await response.Content.ReadAsStringAsync();
 
+            Assert.Equal("{\"message\":\"\",\"success\":false,\"errors\":[\"The field 'name', 'description', 'dueDate', 'status' is required\"],\"statusCode\":500}", contentResponse);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -116,6 +117,9 @@ namespace Tests
             var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
+            var contentResponse = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("{\"message\":\"\",\"success\":false,\"errors\":[\"The field 'dueDate' must be a future date\"],\"statusCode\":500}", contentResponse);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -169,6 +173,10 @@ namespace Tests
             var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
 
             // Assert
+            var contentResponse = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"2025-06-25T00:00:00.0000000\",\"status\":\"En progreso\",\"additionalData\":\"Medium Priority\",\"remainingDays\":5},\"success\":true,\"message\":\"Successfully created!\",\"statusCode\":201}", contentResponse);
+
             Task task = _context.Tasks.Find(1);
             Assert.Equal(bodyData.Name, task.Name);
             Assert.Equal(bodyData.Description, task.Description);
@@ -209,6 +217,9 @@ namespace Tests
             var response = await _authenticatedUser.PutAsync($"/api/Tasks/{task.Id}", body);
 
             // Assert
+            var contentResponse = await response.Content.ReadAsStringAsync();
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"2025-06-25T00:00:00.0000000\",\"status\":\"En progreso\",\"additionalData\":\"Medium Priority\",\"remainingDays\":5},\"success\":true,\"message\":\"Successfully updated!\",\"statusCode\":200}", contentResponse);
+
             _context.Entry(task).Reload();
             Assert.Equal(bodyData.Name, task.Name);
             Assert.Equal(bodyData.Description, task.Description);
