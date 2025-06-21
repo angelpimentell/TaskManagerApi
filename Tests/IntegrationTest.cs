@@ -124,7 +124,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task PostTask_ShouldReturnCorrectValue_WhenDueDateIsInFuture()
+        public async Threading.Task PostTask_ShouldReturnCorrectRemainingDays_WhenDueDateIsInFuture()
         {
             // Arrange
             var task = new Task
@@ -152,7 +152,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task PostTask_ShouldReturnCreated_WhenDataIsValid()
+        public async Threading.Task PostTask_ShouldCreate_WhenDataIsValid()
         {
             // Arrange
             var bodyData = new
@@ -184,6 +184,78 @@ namespace Tests
             Assert.Equal(bodyData.Status, task.Status);
             Assert.Equal(5, task.RemainingDays);
             Assert.Equal("Medium Priority", task.AdditionalData);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
+        public async Threading.Task PostTask_ShouldCreateAndHaveHighPriority_WhenRemainingDayIs1()
+        {
+            // Arrange
+            var bodyData = new
+            {
+                Name = "Completar reporte",
+                Description = "Terminar el reporte mensual de ventas",
+                DueDate = DateTime.Now.AddDays(1).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
+                Status = "En progreso",
+            };
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(bodyData),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
+
+            // Assert
+            var contentResponse = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"2025-06-21T00:00:00.0000000\",\"status\":\"En progreso\",\"additionalData\":\"High Priority\",\"remainingDays\":1},\"success\":true,\"message\":\"Successfully created!\",\"statusCode\":201}", contentResponse);
+
+            Task task = _context.Tasks.Find(1);
+            Assert.Equal(bodyData.Name, task.Name);
+            Assert.Equal(bodyData.Description, task.Description);
+            Assert.True(DateTime.Now.AddDays(1).Date == task.DueDate);
+            Assert.Equal(bodyData.Status, task.Status);
+            Assert.Equal(1, task.RemainingDays);
+            Assert.Equal("High Priority", task.AdditionalData);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
+        public async Threading.Task PostTask_ShouldCreateAndHaveLowPriority_WhenRemainingDayIs11()
+        {
+            // Arrange
+            var bodyData = new
+            {
+                Name = "Completar reporte",
+                Description = "Terminar el reporte mensual de ventas",
+                DueDate = DateTime.Now.AddDays(11).Date.ToString("yyyy-MM-dd'T'HH:mm:ss"),
+                Status = "En progreso",
+            };
+
+            var body = new StringContent(
+                JsonConvert.SerializeObject(bodyData),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _authenticatedUser.PostAsync("/api/Tasks", body);
+
+            // Assert
+            var contentResponse = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("{\"data\":{\"id\":1,\"name\":\"Completar reporte\",\"description\":\"Terminar el reporte mensual de ventas\",\"dueDate\":\"2025-07-01T00:00:00.0000000\",\"status\":\"En progreso\",\"additionalData\":\"Low Priority\",\"remainingDays\":11},\"success\":true,\"message\":\"Successfully created!\",\"statusCode\":201}", contentResponse);
+
+            Task task = _context.Tasks.Find(1);
+            Assert.Equal(bodyData.Name, task.Name);
+            Assert.Equal(bodyData.Description, task.Description);
+            Assert.True(DateTime.Now.AddDays(11).Date == task.DueDate);
+            Assert.Equal(bodyData.Status, task.Status);
+            Assert.Equal(11, task.RemainingDays);
+            Assert.Equal("Low Priority", task.AdditionalData);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
