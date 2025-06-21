@@ -232,7 +232,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Threading.Task DeleteTask_ShouldReturnNoContent_WhenTaskExistsAndUserIsAuthorized()
+        public async Threading.Task RemoveTask_ShouldReturnNoContent_WhenTaskExistsAndUserIsAuthorized()
         {
             // Arrange
             var task = new Task
