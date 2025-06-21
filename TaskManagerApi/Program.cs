@@ -113,7 +113,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
                     var propsPart = rawError.Substring(startIndex + "including:".Length).Trim();
                     // Remove trailing punctuation if any
                     propsPart = propsPart.Trim(new char[] { '.', ' ', '"' });
-                    rawError = $"Missing required property: {propsPart}";
+                    rawError = $"The field {propsPart} is required";
                 }
                 else
                 {
