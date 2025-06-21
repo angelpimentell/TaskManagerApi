@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagerApi.Data;
 using Threading = System.Threading.Tasks;
-using TaskManagerApi.Factories;
 using Task = TaskManagerApi.Models.Task<string>;
 using TaskManagerApi.Creators;
 using System.Collections.Concurrent;
@@ -109,7 +108,7 @@ namespace TaskManagerApi.Controllers
 
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.All.SendAsync("Global", "Task creaded!");
+            await _hubContext.Clients.All.SendAsync("Global", "Task created!");
 
             return new JsonResult(new
             {
@@ -140,6 +139,23 @@ namespace TaskManagerApi.Controllers
             {
                 while (UpdateTaskQueue.TryDequeue(out var nextTask))
                 {
+                    TaskCreator taskCreator;
+
+                    if (task.RemainingDays <= 1)
+                    {
+                        taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.HIGH_PRIORITY);
+                    }
+                    else if (task.RemainingDays > 1 && task.RemainingDays <= 10)
+                    {
+                        taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.MEDIUM_PRIORITY);
+                    }
+                    else
+                    {
+                        taskCreator = Factories.TaskFactory.CreateInstance(Factories.TaskFactory.LOW_PRIORITY);
+                    }
+
+                    task = taskCreator.Create(task);
+
                     existingTask.Name = task.Name;
                     existingTask.Description = task.Description;
                     existingTask.DueDate = task.DueDate;

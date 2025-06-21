@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TaskManagerApi.Data;
+using TaskManagerApi.Services;
 
 namespace LocalRNC.Controllers
 {
@@ -16,13 +17,13 @@ namespace LocalRNC.Controllers
     [AllowAnonymous]
     public class LoginController : ControllerBase
     {
-        private readonly IConfiguration _config;
         private readonly AppDbContext _context;
+        private JwtTokenService _jwtTokenService;
 
         public LoginController(AppDbContext context, IConfiguration config)
         {
-            _config = config;
             _context = context;
+            _jwtTokenService = new JwtTokenService(config);
         }
 
         [HttpPost("login")]
@@ -41,32 +42,12 @@ namespace LocalRNC.Controllers
 
             if (user != null && email == user.Email && password == user.Password)
             {
-                var tokenString = GenerateJWT();
+                
+                var tokenString = _jwtTokenService.GenerateJWT();
                 return Ok(new { Token = tokenString });
             }
 
             return Unauthorized();
-        }
-
-        private string GenerateJWT()
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-            new Claim(JwtRegisteredClaimNames.Sub, "admin"),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(30),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

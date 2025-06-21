@@ -7,7 +7,7 @@ using System.Text;
 
 namespace TaskManagerApi.Services
 {
-    public class JwtTokenService : Controller
+    public class JwtTokenService
     {
         private readonly IConfiguration _config;
 
@@ -16,25 +16,23 @@ namespace TaskManagerApi.Services
             _config = config;
         }
 
-        public string GenerateToken()
+        public string GenerateJWT()
         {
-            var jwtSettings = _config.GetSection("JwtSettings");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-            new Claim("client_id", Guid.NewGuid().ToString()), // Custom claim, no username
+            new Claim(JwtRegisteredClaimNames.Sub, "admin"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
             var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"])),
-                signingCredentials: creds
-            );
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
